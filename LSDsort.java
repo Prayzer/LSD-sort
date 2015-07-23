@@ -30,26 +30,39 @@ public class LSDsort {
 		final int N = a.length;
 		final int[] aux = new int[N];
 
+		final int[] count = new int[R + 1];
 		for (int d = 0; d < W; d++) {
 
-			final int[] count = new int[R + 1];
-			for (int i = 0; i < N; i++) {
-				final int c = (a[i] >> BITS_PER_BYTE * d) & 0xFF;
-				count[c + 1]++;
-			}
+			if (d % 2 == 0) {
+				for (int i = 0; i < N; i++) {
+					final int c = (a[i] >> BITS_PER_BYTE * d) & 0xFF;
+					count[c + 1]++;
+				}
 
-			for (int r = 0; r < R; r++) {
-				count[r + 1] += count[r];
-			}
+				for (int r = 0; r < R; r++) {
+					count[r + 1] += count[r];
+				}
 
-			for (int i = 0; i < N; i++) {
-				final int c = (a[i] >> BITS_PER_BYTE * d) & 0xFF;
-				aux[count[c]++] = a[i];
-			}
+				for (int i = 0; i < N; i++) {
+					final int c = (a[i] >> BITS_PER_BYTE * d) & 0xFF;
+					aux[count[c]++] = a[i];
+				}
+			}else {
+				for (int i = 0; i < N; i++) {
+					final int c = (aux[i] >> BITS_PER_BYTE * d) & 0xFF;
+					count[c + 1]++;
+				}
 
-			for (int i = 0; i < N; i++) {
-				a[i] = aux[i];
+				for (int r = 0; r < R; r++) {
+					count[r + 1] += count[r];
+				}
+
+				for (int i = 0; i < N; i++) {
+					final int c = (aux[i] >> BITS_PER_BYTE * d) & 0xFF;
+					a[count[c]++] = aux[i];
+				}
 			}
+			Arrays.fill(count, 0);
 		}
 	}
 
@@ -57,11 +70,11 @@ public class LSDsort {
 
 		long countTimeStandartSort = 0;
 		long countTimeLSDSort = 0;
-		
+
 		for (int i = 0; i < NUMBER_RUN; i++) {
 			final int[] data = generate();
 			final int[] dataCopy = data.clone();
-			
+
 			final long start = System.nanoTime();
 			Arrays.sort(data);
 			final long stop = System.nanoTime();
@@ -71,16 +84,16 @@ public class LSDsort {
 			final long stop1 = System.nanoTime();
 
 			final boolean areEqual = Arrays.equals(data, dataCopy);
-			
-			if(areEqual) {
+
+			if (areEqual) {
 				countTimeStandartSort += stop - start;
 				countTimeLSDSort += stop1 - start1;
-			}else {
+			} else {
 				System.err.println("Something wrong with data equals");
 			}
-		
+
 		}
-		final double timeWinnings = (double)countTimeStandartSort / (double)countTimeLSDSort;
+		final double timeWinnings = (double) countTimeStandartSort / (double) countTimeLSDSort;
 		System.out.print("This program can compare Standart and LSD sorts, LSD-sort faster in: ");
 		System.out.println(timeWinnings);
 
